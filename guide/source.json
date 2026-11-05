@@ -58,7 +58,9 @@
       "title": "Controllers and dependency injection",
       "paragraphs": [
         "Controllers extend NourApi\\Framework\\Routing\\Controller for validation, authorization and dispatch convenience methods. Register controller method middleware with middleware(name, options), using only or except to limit methods. Constructor and action dependencies are resolved through the Illuminate container. Route parameter names are matched to action parameter names.",
-        "Bind interfaces in an application service provider using bind or singleton, and register the provider in bootstrap/app.php. Container instances are application singletons unless bound otherwise; do not store request-specific data in service singletons. Illuminate\\Http\\Request and NourApi\\Framework\\Http\\Request injection resolve the current request. Facades are optional and require withFacades()."
+        "Bind interfaces in an application service provider using bind or singleton, and register the provider in bootstrap/app.php. Container instances are application singletons unless bound otherwise; do not store request-specific data in service singletons. Illuminate\\Http\\Request and NourApi\\Framework\\Http\\Request injection resolve the current request. Facades are optional and require withFacades().",
+        "When withFacades() switches to a different Application, cached facade roots are cleared. Custom class aliases can be registered after the default aliases have already been loaded; existing class aliases are preserved.",
+        "Application boot includes providers registered by other providers during boot. Reentrant boot calls do not run the same provider recursively. If initial boot fails, a later retry resumes pending providers without repeating providers that already booted successfully."
       ],
       "code": "$app->singleton(Clock::class, SystemClock::class);\n$app->register(App\\Providers\\AppServiceProvider::class);\n// In App\\Http\\Controllers\\ProfileController:\npublic function show(\\Illuminate\\Http\\Request $request)\n{\n    return response()->json(['user' => $request->user()?->getAuthIdentifier()]);\n}"
     },
@@ -119,7 +121,8 @@
       "title": "Events, jobs, CLI and extension points",
       "paragraphs": [
         "Register event listeners/subscribers in App\\Providers\\EventServiceProvider and register the provider in bootstrap/app.php. Dispatch events through event(). Jobs use the Illuminate bus and configured queue connection. Configure a durable queue and failure handling for background jobs; the default sync connection executes jobs in the request.",
-        "php artisan list is the authoritative installed command list. Define custom command classes in App\\Console\\Kernel and schedule jobs through its schedule method. Service providers, container bindings, response macros, middleware and event listeners are the existing extension points; there is no separate plugin package manager."
+        "php artisan list is the authoritative installed command list. Define custom command classes in App\\Console\\Kernel and schedule jobs through its schedule method. Service providers, container bindings, response macros, middleware and event listeners are the existing extension points; there is no separate plugin package manager.",
+        "Console Kernel::bootstrap(), programmatic call() and command discovery boot registered providers once, matching the normal CLI entry point."
       ]
     },
     {
@@ -136,7 +139,10 @@
       "paragraphs": [
         "Run composer test in framework, installer and an installed application. PHP syntax checks and composer validate --strict should also pass. composer audit examines the resolved dependency versions. The framework testing base restores process-level PHP error/exception handlers after each test, preserving PHPUnit isolation.",
         "Run php tests/integration.php in installer with sibling framework and nour-api checkouts. It makes temporary copies, exposes local packages through a temporary Composer path repository, executes the real installer and Composer create-project, checks the generated key, runs Artisan and generated application tests, and dispatches an HTTP request. It cleans only its own temporary directory. Package downloads may be required; no remote repository writes are performed.",
-        "A path repository can resolve nour-api/framework to a local checkout using an explicit 2.1.1 development alias. Do not commit developer-specific absolute paths or local Composer manifests to released application packages. Dependency resolution against an emulated PHP platform is not a substitute for running tests on that PHP version."
+        "A path repository can resolve nour-api/framework to a local checkout using an explicit 2.1.1 development alias. Do not commit developer-specific absolute paths or local Composer manifests to released application packages. Dependency resolution against an emulated PHP platform is not a substitute for running tests on that PHP version.",
+        "The ordinary framework test suite performs real in-memory SQLite CRUD, database-backed uniqueness validation, SQL parameter binding, migration/rollback and transaction cleanup checks. The development test bootstrap checks actual PDO SQLite driver availability; SQLite is not a production dependency. Failed migration commands stop the test; partial transaction setup is rolled back and nested transactions return to their prior level.",
+        "Testing actingAs()/be() identities persist across the current test requests and reset when the application is refreshed. This is test-only behavior; runtime request identity isolation is retained. Teardown attempts all cleanup callbacks and flushes the application before reporting the first cleanup failure.",
+        "framework/tests/integration/README.md describes an isolated Composer project for the optional Redis and PSR-7 components. With those components installed, the same PHPUnit suite checks successful PSR conversion and refresh between requests. The explicit tests/integration/redis.php script starts a private non-persistent Unix-socket Redis process and checks cache, atomic add, lock ownership and queue job execution, then stops its own process and removes its own files. It does not use an application Redis server."
       ]
     },
     {
@@ -146,7 +152,7 @@
         "Installer callers must use --project-version for skeleton constraints and make their first Git commit explicitly. New skeletons default to APP_DEBUG=false and no example database password. Application::version now identifies Nour-API and Illuminate 12 rather than Lumen 11. Avoid treating the human-readable version string as a machine interface.",
         "Named route parameter values are encoded as path segments. Remove application-side pre-encoding and review routes that intentionally passed slash-separated paths as one parameter. Static closures are supported. Ordinary Illuminate requests are adapted to Nour requests so its route metadata helpers work.",
         "Clients that previously received 500 for ordinary ValidationException or AuthenticationException now receive 422 or 401. HTTP 5xx JSON messages are generic outside debug mode. Verify client error handling and custom exception renderers.",
-        "Before release run the PHP compatibility matrix, a real database integration suite for supported application drivers, Windows installer checks, production web server smoke tests and review the original Docusaurus source. No release, push, deployment or publication is part of this local work."
+        "Before release run the PHP compatibility matrix, MySQL/PostgreSQL integration tests beyond the in-memory SQLite coverage, Windows installer checks, production web server smoke tests and review the original Docusaurus source. No release, push, deployment or publication is part of this local work."
       ]
     }
   ]
