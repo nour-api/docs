@@ -4,6 +4,7 @@ $autoload = $argv[1] ?? __DIR__.'/../../framework/vendor/autoload.php';
 require $autoload;
 $app = require __DIR__.'/../examples/application.php';
 $app['config']->set('app.debug', false);
+$app->configure('logging');
 $app['config']->set('logging.default', 'null');
 $cases = [
     ['/health', 'GET', [], 200, ['status' => 'ok']],

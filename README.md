@@ -11,3 +11,11 @@ php tools/test-examples.php
 ```
 
 The last command uses `../framework/vendor/autoload.php` by default; an alternate autoloader may be passed as its first argument. It executes seven HTTP scenarios against the complete example. No deployment command is provided or required. Review the generated `guide/index.html` locally before publication.
+
+## Development CI
+
+The documentation workflow checks this canonical guide and the `nour-api.github.io` mirror from `dev` without modifying either file. It executes the seven documented HTTP scenarios against the checked-out framework `dev` branch on PHP 8.2 and 8.5, checks PHP syntax and audits the runtime dependencies. The tested framework commit is recorded in the run log.
+
+The mirror repository runs the same canonical renderer and examples, using its own checked-out mirror files. Both workflows have read-only repository permissions and contain no deployment steps.
+
+When changing the guide, render and commit both repositories, push both development branches, and rerun a drift check if it ran before the second push arrived. Framework-only changes do not trigger these repositories automatically; rerun their checks after coordinated kernel changes. Pushes to `dev`, pull requests and a declared manual dispatch trigger are supported.

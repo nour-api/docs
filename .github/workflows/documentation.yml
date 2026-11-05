@@ -1,0 +1,51 @@
+name: Documentation quality
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  guide-and-examples:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.5']
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: docs
+      - uses: actions/checkout@v6
+        with:
+          repository: nour-api/nour-api.github.io
+          ref: dev
+          path: nour-api.github.io
+      - uses: actions/checkout@v6
+        with:
+          repository: nour-api/framework
+          ref: dev
+          path: framework
+      - name: Check the canonical guide and its mirror without writing files
+        run: python3 docs/tools/render-guide.py --mirror nour-api.github.io --check
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: mbstring, dom, xml, curl, fileinfo, pdo_sqlite
+          coverage: none
+      - name: Install the checked-out framework
+        working-directory: framework
+        run: composer install --no-dev --no-interaction --prefer-dist --no-plugins --no-scripts
+      - name: Audit runtime dependencies
+        working-directory: framework
+        run: composer audit --no-dev --locked
+      - name: Record the tested framework commit
+        run: git -C framework rev-parse HEAD
+      - name: Check example syntax
+        run: find docs/examples docs/tools -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Execute documented HTTP examples
+        run: php docs/tools/test-examples.php framework/vendor/autoload.php
