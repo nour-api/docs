@@ -21,7 +21,8 @@
       "title": "Installation",
       "paragraphs": [
         "From reviewed, published packages, use Composer directly or install nour-api/installer globally. The commands below consume published versions. Use framework/application 2.2.0 and installer 2.1.0 for the behavior documented here.",
-        "The installer default command accepts a destination directory, including absolute paths and paths containing spaces. Existing directories, files and dangling symbolic links are rejected. It retains partial files after failure for diagnosis and never automatically deletes them."
+        "The installer default command accepts a destination directory, including absolute paths and paths containing spaces. Existing directories, files and dangling symbolic links are rejected. It retains partial files after failure for diagnosis and never automatically deletes them.",
+        "If Packagist indexing is delayed, clone the tagged application from https://github.com/nour-api/nour-api at v2.2.0 and run composer install. Its production lock downloads the verified framework tag directly from GitHub. Use composer install rather than updating dependencies until registry indexing is complete."
       ],
       "code": "composer create-project nour-api/nour-api my-api \"^2.2\"\ncd my-api\ncomposer check-platform-reqs\nphp -S localhost:8000 -t public\n\n# Alternative using the reviewed installer:\ncomposer global require nour-api/installer\nnour-api my-api --project-version=\"^2.2\" --no-git"
     },
