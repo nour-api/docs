@@ -28,7 +28,7 @@ page = '''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Nour-API engineering guide</title>
 <style>body{font:18px/1.65 system-ui,sans-serif;max-width:960px;margin:2rem auto;padding:0 1.2rem;color:#172033;background:#fafbfd}a{color:#125a9d}pre{overflow:auto;background:#142034;color:#eaf2ff;padding:1rem;border-radius:8px;font-size:14px}section{margin:3rem 0}nav ul{columns:2}h1,h2{line-height:1.25}p{overflow-wrap:anywhere}@media(max-width:600px){nav ul{columns:1}}</style>
-</head><body><main><h1>Nour-API engineering guide</h1><p>Maintained reference for the local 2.1 engineering changes. These changes are not a published release.</p><nav aria-label="Contents"><ul>'''+navigation+'</ul></nav>'+''.join(sections)+'</main></body></html>\n'
+</head><body><main><h1>Nour-API engineering guide</h1><p>Nour-API 2.2 reference: framework and application 2.2.0, installer 2.1.0.</p><nav aria-label="Contents"><ul>'''+navigation+'</ul></nav>'+''.join(sections)+'</main></body></html>\n'
 targets = [root / 'guide/index.html']
 if args.mirror:
     if not (args.mirror / '.git').is_dir():

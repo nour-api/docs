@@ -4,7 +4,7 @@
       "id": "architecture",
       "title": "Architecture and repository map",
       "paragraphs": [
-        "framework contains the NourApi\\Framework kernel. It extends the Illuminate container, lazily registers Illuminate services, dispatches routes with FastRoute, and uses Symfony HTTP responses. nour-api is the Composer project skeleton; it requires nour-api/framework ^2.1. installer uses Composer create-project to install that skeleton.",
+        "framework contains the NourApi\\Framework kernel. It extends the Illuminate container, lazily registers Illuminate services, dispatches routes with FastRoute, and uses Symfony HTTP responses. nour-api is the Composer project skeleton; it requires nour-api/framework ^2.2. installer uses Composer create-project to install that skeleton.",
         "docs and nour-api.github.io are Docusaurus deployment outputs on gh-pages. Their original Docusaurus sources and build configuration are absent from these checkouts. This guide has one canonical source: docs/guide/source.json plus docs/examples/application.php. tools/render-guide.py renders the guide and copies identical HTML to the second local checkout. Historical Docusaurus pages remain historical reference until their original sources are recovered."
       ]
     },
@@ -20,10 +20,10 @@
       "id": "installation",
       "title": "Installation",
       "paragraphs": [
-        "From reviewed, published packages, use Composer directly or install nour-api/installer globally. The commands below consume published versions. They do not include local unpublished fixes. For local integration use the installer integration check described below.",
+        "From reviewed, published packages, use Composer directly or install nour-api/installer globally. The commands below consume published versions. Use framework/application 2.2.0 and installer 2.1.0 for the behavior documented here.",
         "The installer default command accepts a destination directory, including absolute paths and paths containing spaces. Existing directories, files and dangling symbolic links are rejected. It retains partial files after failure for diagnosis and never automatically deletes them."
       ],
-      "code": "composer create-project nour-api/nour-api my-api\ncd my-api\ncomposer check-platform-reqs\nphp -S localhost:8000 -t public\n\n# Alternative using the reviewed installer:\ncomposer global require nour-api/installer\nnour-api my-api --project-version=\"^2.1\" --no-git"
+      "code": "composer create-project nour-api/nour-api my-api \"^2.2\"\ncd my-api\ncomposer check-platform-reqs\nphp -S localhost:8000 -t public\n\n# Alternative using the reviewed installer:\ncomposer global require nour-api/installer\nnour-api my-api --project-version=\"^2.2\" --no-git"
     },
     {
       "id": "installer",
@@ -31,7 +31,7 @@
       "paragraphs": [
         "The installer executes Composer without a shell, forwards --prefer-source, --no-scripts, --no-plugins and --ignore-platform-reqs only when requested, and checks subprocess exit status. Composer scripts and plugins are package code; select --no-scripts --no-plugins when you require them disabled.",
         "It copies .env.example if needed and fills an empty APP_KEY with a random 32-byte base64 key, sets permissions to 0600 on files it writes, preserves existing non-empty keys and refuses symbolic .env links. Exactly one APP_KEY entry is required. Git initialization is optional; there is no automatic staging or commit. Review files before committing.",
-        "--version is reserved by Symfony for the installer program version. Use --project-version to select the skeleton constraint. Earlier installer code could not start because of an incompatible private run() method and the conflicting version option. The installer does not invoke artisan key:generate: this command is not provided by the framework.",
+        "--version is reserved by Symfony for the installer program version. Use --project-version to select the skeleton constraint. The published --ref/-r option remains supported as an alias for --project-version; conflicting values are rejected. Earlier main-branch installer code had an incompatible private run() method and a conflicting version option. The installer does not invoke artisan key:generate: this command is not provided by the framework.",
         "On Composer failure inspect its output, platform extensions, connectivity and package constraints. Retry into a fresh directory after reviewing partial files. On Git failure project files remain available and you may run git init manually. No success is reported after a failed required step."
       ]
     },
@@ -139,7 +139,7 @@
       "paragraphs": [
         "Run composer test in framework, installer and an installed application. PHP syntax checks and composer validate --strict should also pass. composer audit examines the resolved dependency versions. The framework testing base restores process-level PHP error/exception handlers after each test, preserving PHPUnit isolation.",
         "Run php tests/integration.php in installer with sibling framework and nour-api checkouts. It makes temporary copies, exposes local packages through a temporary Composer path repository, executes the real installer and Composer create-project, checks the generated key, runs Artisan and generated application tests, and dispatches an HTTP request. It cleans only its own temporary directory. Package downloads may be required; no remote repository writes are performed.",
-        "A path repository can resolve nour-api/framework to a local checkout using an explicit 2.1.1 development alias. Do not commit developer-specific absolute paths or local Composer manifests to released application packages. Dependency resolution against an emulated PHP platform is not a substitute for running tests on that PHP version.",
+        "A path repository can resolve nour-api/framework to a local checkout using an explicit 2.2.0 development alias. Do not commit developer-specific absolute paths or local Composer manifests to released application packages. Dependency resolution against an emulated PHP platform is not a substitute for running tests on that PHP version.",
         "The ordinary framework test suite performs real in-memory SQLite CRUD, database-backed uniqueness validation, SQL parameter binding, migration/rollback and transaction cleanup checks. The development test bootstrap checks actual PDO SQLite driver availability; SQLite is not a production dependency. Failed migration commands stop the test; partial transaction setup is rolled back and nested transactions return to their prior level.",
         "Testing actingAs()/be() identities persist across the current test requests and reset when the application is refreshed. This is test-only behavior; runtime request identity isolation is retained. Teardown attempts all cleanup callbacks and flushes the application before reporting the first cleanup failure.",
         "framework/tests/integration/README.md describes an isolated Composer project for the optional Redis and PSR-7 components. With those components installed, the same PHPUnit suite checks successful PSR conversion and refresh between requests. The explicit tests/integration/redis.php script starts a private non-persistent Unix-socket Redis process and checks cache, atomic add, lock ownership and queue job execution, then stops its own process and removes its own files. It does not use an application Redis server.",
@@ -150,10 +150,10 @@
       "id": "migration",
       "title": "Migration notes and review before release",
       "paragraphs": [
-        "Installer callers must use --project-version for skeleton constraints and make their first Git commit explicitly. New skeletons default to APP_DEBUG=false and no example database password. Application::version now identifies Nour-API and Illuminate 12 rather than Lumen 11. Avoid treating the human-readable version string as a machine interface.",
+        "Installer callers may use --project-version or the compatible --ref/-r option for skeleton constraints and make their first Git commit explicitly. New skeletons default to APP_DEBUG=false and no example database password. Application::version now identifies Nour-API and Illuminate 12 rather than Lumen 11. Avoid treating the human-readable version string as a machine interface.",
         "Named route parameter values are encoded as path segments. Remove application-side pre-encoding and review routes that intentionally passed slash-separated paths as one parameter. Static closures are supported. Ordinary Illuminate requests are adapted to Nour requests so its route metadata helpers work.",
         "Clients that previously received 500 for ordinary ValidationException or AuthenticationException now receive 422 or 401. HTTP 5xx JSON messages are generic outside debug mode. Verify client error handling and custom exception renderers.",
-        "Before release run the PHP compatibility matrix, PostgreSQL and production-version MySQL integration tests beyond the SQLite and private MariaDB coverage, Windows installer checks, production web server smoke tests and review the original Docusaurus source. No release, push, deployment or publication is part of this local work."
+        "Before release run the PHP compatibility matrix, PostgreSQL and production-version MySQL integration tests beyond the SQLite and private MariaDB coverage, Windows installer checks, production web server smoke tests and review the original Docusaurus source. Release publication requires passing the compatibility and cross-repository checks."
       ]
     }
   ]

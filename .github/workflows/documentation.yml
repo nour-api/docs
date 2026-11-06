@@ -2,7 +2,7 @@ name: Documentation quality
 
 on:
   push:
-    branches: [dev]
+    branches: [dev, gh-pages]
   pull_request:
   workflow_dispatch:
 
