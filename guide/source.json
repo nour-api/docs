@@ -156,6 +156,17 @@
         "Clients that previously received 500 for ordinary ValidationException or AuthenticationException now receive 422 or 401. HTTP 5xx JSON messages are generic outside debug mode. Verify client error handling and custom exception renderers.",
         "Before release run the PHP compatibility matrix, PostgreSQL and production-version MySQL integration tests beyond the SQLite and private MariaDB coverage, Windows installer checks, production web server smoke tests and review the original Docusaurus source. Release publication requires passing the compatibility and cross-repository checks."
       ]
+    },
+    {
+      "id": "async-development",
+      "title": "Development: isolated async HTTP and concurrent I/O",
+      "paragraphs": [
+        "Unreleased functionality on dev, after 2.2.0: the optional vendor/bin/nour-serve entry point uses CLI Swoole 6.x with a fresh PHP process per request. PHP-FPM, public/index.php and synchronous controllers continue to work without Swoole. Published 2.2.0 does not include these APIs. Select the development framework through the application CI Composer overlay for local testing.",
+        "Concurrent::run starts independent I/O tasks with bounded concurrency, preserves result keys and waits for all tasks before propagating an exception. The isolated runtime enables Swoole I/O hooks. Standalone CLI callers must enable their required hooks explicitly. Unhooked operations remain blocking; CPU work is not made parallel. Do not share transactions or mutable client/container/session state between tasks within one request.",
+        "The gateway returns 503 at capacity, 504 at its deadline and generic 502 for process/transport failures. Defaults: one gateway worker, 16 active requests per worker, 30 seconds, 128 MB PHP memory per request process, 2 MB request packages and 16 MB encoded responses. Per-request bootstrap and process startup are intentional costs for reliable isolation of the existing global container/facade APIs.",
+        "Query/JSON/forms, cookies, uploads, HEAD, Symfony responses and termination are supported. Streamed/file responses are buffered; live SSE, WebSockets and unbounded streaming are not provided. Use framework request/response/upload APIs rather than native CLI headers, php://input or is_uploaded_file. Static serving is disabled and loopback is the default bind address. Full details and executable checks are in framework/ASYNC.md."
+      ],
+      "code": "# From a project consuming the development kernel:\nvendor/bin/nour-serve --host=127.0.0.1 --port=8000 --concurrency=16 --timeout=30\n\n# Existing synchronous mode remains available:\nphp -S localhost:8000 -t public\n\n# Inside a request, with independent I/O clients:\n$values = \\NourApi\\Framework\\Runtime\\Concurrent::run([\n    \"one\" => static fn () => file_get_contents(\"https://service-one.example/status\"),\n    \"two\" => static fn () => file_get_contents(\"https://service-two.example/status\"),\n], concurrency: 2);"
     }
   ]
 }
